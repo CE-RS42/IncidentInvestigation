@@ -1272,15 +1272,41 @@
 }
 
 @media print {
-	body * { visibility: hidden; }
+	/* Only hide the rest of the page when the incident investigation view is
+	   actually on the page. This stylesheet is a global module asset, so an
+	   unscoped "body *" hid every element on EVERY printed page - including the
+	   dashboards rendered by zabbix-web-service (which renders in print media),
+	   producing blank scheduled report PDFs.
+	   The :where() wrapper keeps specificity at (0,0,1), identical to the
+	   original "body *", so the "visibility: visible" rules below still win for
+	   the wrapper itself (otherwise the module's own Export report goes blank). */
+	body:where(:has(.mnz-incident-investigation-wrapper)) * { visibility: hidden; }
 	.mnz-incident-investigation-wrapper,
 	.mnz-incident-investigation-wrapper * { visibility: visible; }
+	/* visibility:hidden keeps the hidden elements' layout space, so the Zabbix
+	   sidebar/header still indented the printout (big empty strip on the left)
+	   and fixed-width charts ran off the right edge of the paper. Take the page
+	   chrome out of the layout entirely and let the report use the full paper
+	   width, scaling wide charts down to fit. */
+	body:where(:has(.mnz-incident-investigation-wrapper)) aside,
+	body:where(:has(.mnz-incident-investigation-wrapper)) header,
+	body:where(:has(.mnz-incident-investigation-wrapper)) nav,
+	body:where(:has(.mnz-incident-investigation-wrapper)) footer {
+		display: none !important;
+	}
+	body:where(:has(.mnz-incident-investigation-wrapper)) .wrapper {
+		display: block !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		max-width: none !important;
+	}
 	.mnz-incident-investigation-wrapper {
 		position: relative;
 		left: 0;
 		top: 0;
 		width: 100%;
 		max-width: none;
+		margin: 0;
 		padding: 0;
 		-webkit-print-color-adjust: exact;
 		print-color-adjust: exact;
@@ -1291,6 +1317,72 @@
 	.mnz-incident-investigation-wrapper * {
 		-webkit-print-color-adjust: exact;
 		print-color-adjust: exact;
+	}
+	.mnz-incident-investigation-wrapper canvas,
+	.mnz-incident-investigation-wrapper svg,
+	.mnz-incident-investigation-wrapper img,
+	.mnz-incident-investigation-wrapper table {
+		max-width: 100% !important;
+		height: auto !important;
+	}
+	/* Fit-to-page: the report content is wider than a portrait A4. Print in
+	   landscape, release the min-width locks (they stop flex/grid items from
+	   shrinking below their fixed pixel widths) and stack the two-column
+	   chart rows so nothing runs off the right edge of the paper. */
+	@page {
+		size: landscape;
+		margin: 10mm;
+	}
+	.mnz-incident-investigation-wrapper * {
+		min-width: 0 !important;
+	}
+	.mnz-insight-graph-row,
+	.mnz-heatmap-sla-row {
+		grid-template-columns: 1fr !important;
+	}
+	/* Zabbix scrolls the page inside fixed-height containers (100vh +
+	   overflow:auto). When printing, such scroll containers are clipped to a
+	   single viewport, so only page "1 of 1" came out and everything below
+	   the fold was lost. Unlock them so the report paginates normally. */
+	html:where(:has(.mnz-incident-investigation-wrapper)),
+	body:where(:has(.mnz-incident-investigation-wrapper)),
+	body:where(:has(.mnz-incident-investigation-wrapper)) .wrapper,
+	body:where(:has(.mnz-incident-investigation-wrapper)) main {
+		height: auto !important;
+		max-height: none !important;
+		overflow: visible !important;
+	}
+	/* The heatmap has fixed 32px cells with flex-shrink:0 and a min-content
+	   grid, so it cannot shrink and ran off the right edge. Smaller fixed
+	   cells keep the grid aligned and fit 24 hour columns on the paper. */
+	.mnz-heatmap-grid {
+		min-width: 0 !important;
+	}
+	.mnz-heatmap-cell {
+		width: 24px !important;
+		height: 24px !important;
+	}
+	.mnz-heatmap-row-label {
+		width: 44px !important;
+		height: 24px !important;
+	}
+	.mnz-heatmap-hour-label {
+		width: 24px !important;
+		margin: 0 1px !important;
+		font-size: 8px !important;
+	}
+	/* The outer "Time patterns" section wraps the heatmap and SLA sections
+	   together; with break-inside:avoid it no longer fit under the page
+	   header, jumped to page 2 whole and left page 1 nearly empty. Let the
+	   outer wrapper break across pages - the nested heatmap and SLA
+	   sections keep their own break-inside:avoid so each block stays intact. */
+	.mnz-incident-section-patterns {
+		break-inside: auto;
+		page-break-inside: auto;
+	}
+	/* The "Developed by ..." footer produced a whole extra page on its own. */
+	.mnz-module-footer {
+		display: none !important;
 	}
 	.mnz-incident-investigation-title,
 	.mnz-incident-section-title,

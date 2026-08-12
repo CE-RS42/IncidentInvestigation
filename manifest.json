@@ -2,9 +2,9 @@
 	"manifest_version": 2,
 	"id": "incident-investigation",
 	"name": "Incident Investigation",
-	"version": "1.0",
+	"version": "1.0.7",
 	"namespace": "IncidentInvestigation",
-	"author": "Monzphere",
+	"author": "Conclusion Enablement",
 	"url": "https://monzphere.com",
 	"description": "Detailed incident investigation with Time Patterns and comprehensive insights",
 	"actions": {
