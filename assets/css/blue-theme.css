@@ -1375,8 +1375,12 @@
 	   together; with break-inside:avoid it no longer fit under the page
 	   header, jumped to page 2 whole and left page 1 nearly empty. Let the
 	   outer wrapper break across pages - the nested heatmap and SLA
-	   sections keep their own break-inside:avoid so each block stays intact. */
-	.mnz-incident-section-patterns {
+	   sections keep their own break-inside:avoid so each block stays intact.
+	   (Doubled class selector: the generic '.mnz-incident-section
+	   { break-inside: avoid }' rule appears later in this file, and with
+	   equal specificity the later rule wins - so this override needs the
+	   higher specificity to actually apply.) */
+	.mnz-incident-section.mnz-incident-section-patterns {
 		break-inside: auto;
 		page-break-inside: auto;
 	}
